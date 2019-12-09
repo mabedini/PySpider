@@ -2,7 +2,11 @@ from urllib.request import urlopen
 from link_finder import LinkFinder
 from domain import *
 from general import *
-
+from html_code import *
+import datetime
+import pandas as pd
+#import cgi
+from net_viz import web_graph
 
 class Spider:
 
@@ -11,47 +15,64 @@ class Spider:
     domain_name = ''
     queue_file = ''
     crawled_file = ''
+    fld_downloaded =''
     queue = set()
     crawled = set()
+    web_netgraph = web_graph()
 
-    def __init__(self, project_name, base_url, domain_name):
-        Spider.project_name = project_name
-        Spider.base_url = base_url
-        Spider.domain_name = domain_name
-        Spider.queue_file = Spider.project_name + '/queue.txt'
-        Spider.crawled_file = Spider.project_name + '/crawled.txt'
+    def __init__(self, project_name, base_url, domain_name, fld_downloaded):
+        self.project_name = project_name
+        self.base_url = base_url
+        self.domain_name = domain_name
+        self.fld_downloaded = fld_downloaded
+        self.queue_file = project_name + '/queue.txt'
+        self.crawled_file = project_name + '/crawled.txt'
+        self.queue.add(base_url)
         self.boot()
-        self.crawl_page('First spider', Spider.base_url)
+        #crawl_next_page_from_queue()
 
     # Creates directory and files for project on first run and starts the spider
-    @staticmethod
-    def boot():
-        create_project_dir(Spider.project_name)
-        create_data_files(Spider.project_name, Spider.base_url)
-        Spider.queue = file_to_set(Spider.queue_file)
-        Spider.crawled = file_to_set(Spider.crawled_file)
+    def boot(self):
+        create_project_dir(self.project_name)
+        create_project_dir(self.fld_downloaded)
+        create_data_files(self.project_name, self.base_url)
+        self.queue = file_to_set(self.queue_file)
+        self.crawled = file_to_set(self.crawled_file)
 
     # Updates user display, fills queue and updates files
-    @staticmethod
-    def crawl_page(thread_name, page_url):
-        if page_url not in Spider.crawled:
-            print(thread_name + ' now crawling ' + page_url)
-            print('Queue ' + str(len(Spider.queue)) + ' | Crawled  ' + str(len(Spider.crawled)))
-            Spider.add_links_to_queue(Spider.gather_links(page_url))
-            Spider.queue.remove(page_url)
-            Spider.crawled.add(page_url)
-            Spider.update_files()
+    def crawl_page(self,page_url):
+        if page_url not in self.crawled:
+            self.add_links_to_queue(page_url,self.gather_links(page_url))
+            #self.queue.remove(page_url)
+            self.crawled.add(page_url)
+            self.update_files()
+            return True
+
+    def crawl_next_page_from_queue(self):
+        if len(self.queue) > 0 :
+            url = self.queue.pop()
+            return (self.crawl_page(url) )
+
+        else:
+            return (False)
+    def get_queue_stats(self):
+        return  len(self.queue)
 
     # Converts raw response data into readable information and checks for proper html formatting
-    @staticmethod
-    def gather_links(page_url):
+    def gather_links(self,page_url):
         html_string = ''
         try:
+            print('parsing: '+page_url)
             response = urlopen(page_url)
             if 'text/html' in response.getheader('Content-Type'):
                 html_bytes = response.read()
                 html_string = html_bytes.decode("utf-8")
-            finder = LinkFinder(Spider.base_url, page_url)
+                dl_datetime = response.getheader('Date')
+                dl_date= pd.to_datetime(dl_datetime)
+                dl_folder= os.path.join(self.fld_downloaded,str(dl_date.date()))
+                downlaod_link(page_url, dl_folder)
+
+            finder = LinkFinder(self.base_url, page_url)
             finder.feed(html_string)
         except Exception as e:
             print(str(e))
@@ -59,16 +80,17 @@ class Spider:
         return finder.page_links()
 
     # Saves queue data to project files
-    @staticmethod
-    def add_links_to_queue(links):
+    def add_links_to_queue(self,page_url,links):
         for url in links:
-            if (url in Spider.queue) or (url in Spider.crawled):
+            self.web_netgraph.add_edge(page_url,url)
+            if (url in self.queue) or (url in self.crawled):
                 continue
-            if Spider.domain_name != get_domain_name(url):
+            if self.domain_name != get_domain_name(url):
                 continue
-            Spider.queue.add(url)
+            self.queue.add(url)
+        self.web_netgraph.draw_graph()
 
-    @staticmethod
-    def update_files():
-        set_to_file(Spider.queue, Spider.queue_file)
-        set_to_file(Spider.crawled, Spider.crawled_file)
+
+    def update_files(self):
+        set_to_file(self.queue, self.queue_file)
+        set_to_file(self.crawled, self.crawled_file)
