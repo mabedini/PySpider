@@ -92,5 +92,6 @@ class Spider:
 
 
     def update_files(self):
+        self.web_netgraph.Network_toFile()
         set_to_file(self.queue, self.queue_file)
         set_to_file(self.crawled, self.crawled_file)

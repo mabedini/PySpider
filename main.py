@@ -7,10 +7,8 @@ from html_code import *
 
 #PROJECT_NAME = input('Please enter a Project Name: ')
 #HOMEPAGE = input('Please enter the web site URL: ')
-#PROJECT_NAME = 'oslomet'
-#HOMEPAGE = 'https://www.oslomet.no/'
-PROJECT_NAME = 'kidsJungle'
-HOMEPAGE = 'https://www.kidsjungle.ae/'
+PROJECT_NAME = 'oslomet'
+HOMEPAGE = 'https://www.oslomet.no/'
 
 
 
