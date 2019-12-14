@@ -9,6 +9,7 @@ from html_code import *
 #HOMEPAGE = input('Please enter the web site URL: ')
 PROJECT_NAME = 'oslomet'
 HOMEPAGE = 'https://www.oslomet.no/'
+RESUME_DOWNLOAD = False
 
 
 
@@ -18,7 +19,7 @@ CRAWLED_FILE = os.path.join(PROJECT_NAME , 'crawled.txt')
 FLD_DOWNLOADED= os.path.join(PROJECT_NAME , 'WEBSITE_DOWNLOAD')
 NUMBER_OF_THREADS = 1
 #queue = Queue()
-webcrawler = Spider(PROJECT_NAME, HOMEPAGE, DOMAIN_NAME, FLD_DOWNLOADED)
+webcrawler = Spider(PROJECT_NAME, HOMEPAGE, DOMAIN_NAME, FLD_DOWNLOADED , RESUME_DOWNLOAD)
 
 
 

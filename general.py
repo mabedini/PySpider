@@ -1,4 +1,5 @@
 import os
+import pickle
 
 
 # Each website is a separate project (folder)
@@ -49,3 +50,19 @@ def set_to_file(links, file_name):
     with open(file_name,"w") as f:
         for l in sorted(links):
             f.write(l+"\n")
+
+def pickle_obj(data, flname):
+    # open a file, where you ant to store the data
+    file = open(flname, 'wb')
+    # dump information to that file
+    pickle.dump(data, file)
+    # close the file
+    file.close()
+
+def unpickle_obj(flname):
+    # open a file, where you stored the pickled data
+    file = open(flname, 'rb')
+    tmpObj = pickle.load(file)
+    # close the file
+    file.close()
+    return tmpObj
